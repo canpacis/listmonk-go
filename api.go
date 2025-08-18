@@ -206,19 +206,37 @@ func (c *Client) CreateSubscription(ctx context.Context, params *CreateSubscript
 	return true, nil
 }
 
-/*
-
-// // Modify subscriber list memberships.
-// func (c *Client) CreateSubscription(ctx context.Context) {
-	// 	path := "/api/subscribers/lists"
-	// }
-
-	// Update a specific subscriber.
-func (c *Client) UpdateSubscriber(ctx context.Context, id int) {
-	path := fmt.Sprintf("/api/subscribers/%d", id)
+type UpdateListMembershipsParams struct {
+	// Array of user IDs to be modified.
+	IDs []int `json:"ids"`
+	// Action to be applied: add, remove, or unsubscribe.
+	Acion string `json:"action"`
+	// Array of list IDs to be modified.
+	TargetListIDs []int `json:"target_list_ids"`
+	// Required for add	Subscriber status: confirmed, unconfirmed, or unsubscribed.
+	Status string `json:"status"`
 }
 
-*/
+// Modify subscriber list memberships.
+func (c *Client) UpdateListMemberships(ctx context.Context, params *UpdateListMembershipsParams) (bool, error) {
+	path := "/api/subscribers/lists"
+	resp, err := request[Response[bool]](c, ctx, "PUT", path, params)
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
+// Update a specific subscriber.
+// Note: All parameters must be set, if not, the subscriber will be removed from all previously assigned lists.
+func (c *Client) UpdateSubscriber(ctx context.Context, id int, params *CreateSubscriberParams) error {
+	path := fmt.Sprintf("/api/subscribers/%d", id)
+	_, err := request[Response[any]](c, ctx, "PUT", path, params)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // Blocklist a specific subscriber.
 func (c *Client) BlocklistSubscriber(ctx context.Context, id int) (bool, error) {

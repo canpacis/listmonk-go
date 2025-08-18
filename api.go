@@ -599,6 +599,80 @@ func (c *Client) AbortImport(ctx context.Context) (*AbortImportResponse, error) 
 	return resp.Data, nil
 }
 
+type GetMediaListResponse struct {
+	ID        int       `json:"id"`
+	UUID      uuid.UUID `json:"uuid"`
+	Filename  string    `json:"filename"`
+	URI       string    `json:"uri"`
+	ThumbURL  string    `json:"thumb_url"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Get uploaded media files.
+func (c *Client) GetMediaList(ctx context.Context) ([]GetMediaListResponse, error) {
+	path := "/api/media"
+	resp, err := request[Response[[]GetMediaListResponse]](c, ctx, "GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+type Media struct {
+	ID          int            `json:"id"`
+	UUID        uuid.UUID      `json:"uuid"`
+	Filename    string         `json:"filename"`
+	ContentType string         `json:"content_type"`
+	ThumbURL    string         `json:"thumb_url"`
+	URL         string         `json:"url"`
+	Provider    string         `json:"provider"`
+	Meta        map[string]any `json:"meta"`
+	CreatedAt   time.Time      `json:"created_at"`
+}
+
+// Get specific uploaded media file.
+func (c *Client) GetMedia(ctx context.Context, id int) (*Media, error) {
+	path := fmt.Sprintf("/api/media/%d", id)
+	resp, err := request[Response[*Media]](c, ctx, "GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+type UploadMediaResponse struct {
+	ID        int       `json:"id"`
+	UUID      uuid.UUID `json:"uuid"`
+	Filename  string    `json:"filename"`
+	URI       string    `json:"uri"`
+	ThumbURI  string    `json:"thumb_uri"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Upload media file.
+func (c *Client) UploadMedia(ctx context.Context, file io.Reader) (*UploadMediaResponse, error) {
+	path := "/api/media"
+	resp, err := c.multipart(ctx, path, map[string]string{}, map[string]io.Reader{"file": file})
+	if err != nil {
+		return nil, err
+	}
+	data, err := decode[Response[*UploadMediaResponse]](resp)
+	if err != nil {
+		return nil, err
+	}
+	return data.Data, nil
+}
+
+// Delete uploaded media file.
+func (c *Client) DeleteMedia(ctx context.Context, id int) (bool, error) {
+	path := fmt.Sprintf("/api/media/%d", id)
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, nil)
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
 // Allows sending transactional messages to one or more subscribers via a preconfigured transactional template.
 func (c *Client) SendTemplate(ctx context.Context, params *SendTemplateParams) (bool, error) {
 	path := "/api/tx"

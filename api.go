@@ -766,20 +766,34 @@ func (c *Client) GetCampaignViews(ctx context.Context, params *GetCampaignViewsP
 }
 
 type CreateCampaignParams struct {
-	Name        string           `json:"name"`         // Campaign name.
-	Subject     string           `json:"subject"`      // Campaign email subject.
-	Lists       []int            `json:"lists"`        // List IDs to send campaign to.
-	FromEmail   string           `json:"from_email"`   // 'From' email in campaign emails. Defaults to value from settings if not provided.
-	Type        CampaignType     `json:"type"`         // Campaign type: 'regular' or 'optin'.
-	ContentType string           `json:"content_type"` // Content type: 'richtext', 'html', 'markdown', 'plain', 'visual'.
-	Body        string           `json:"body"`         // Content body of campaign.
-	BodySource  string           `json:"body_source"`  // If content_type is visual, the JSON block source of the body.
-	Altbody     string           `json:"altbody"`      // Alternate plain text body for HTML (and richtext) emails.
-	SendAt      time.Time        `json:"send_at"`      // Timestamp to schedule campaign. Format: 'YYYY-MM-DDTHH:MM:SSZ'.
-	Messenger   string           `json:"messenger"`    // 'email' or a custom messenger defined in settings. Defaults to 'email' if not provided.
-	TemplateID  int              `json:"template_id"`  // Template ID to use. Defaults to default template if not provided.
-	Tags        []string         `json:"tags"`         // Tags to mark campaign.
-	Headers     []map[string]any `json:"headers"`      // Key-value pairs to send as SMTP headers. Example: [{"x-custom-header": "value"}].
+	// Campaign name.
+	Name string `json:"name"`
+	// Campaign email subject.
+	Subject string `json:"subject"`
+	// List IDs to send campaign to.
+	Lists []int `json:"lists"`
+	// 'From' email in campaign emails. Defaults to value from settings if not provided.
+	FromEmail string `json:"from_email"`
+	// Campaign type: 'regular' or 'optin'.
+	Type CampaignType `json:"type"`
+	// Content type: 'richtext', 'html', 'markdown', 'plain', 'visual'.
+	ContentType string `json:"content_type"`
+	// Content body of campaign.
+	Body string `json:"body"`
+	// If content_type is visual, the JSON block source of the body.
+	BodySource string `json:"body_source"`
+	// Alternate plain text body for HTML (and richtext) emails.
+	Altbody string `json:"altbody"`
+	// Timestamp to schedule campaign. Format: 'YYYY-MM-DDTHH:MM:SSZ'.
+	SendAt time.Time `json:"send_at"`
+	// 'email' or a custom messenger defined in settings. Defaults to 'email' if not provided.
+	Messenger string `json:"messenger"`
+	// Template ID to use. Defaults to default template if not provided.
+	TemplateID int `json:"template_id"`
+	// Tags to mark campaign.
+	Tags []string `json:"tags"`
+	// Key-value pairs to send as SMTP headers. Example: [{"x-custom-header": "value"}].
+	Headers []map[string]any `json:"headers"`
 }
 
 // Create a new campaign.

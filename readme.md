@@ -1,6 +1,6 @@
 # Listmonk Go SDK
 
-**Unofficial** Go SDK for the [Listmonk](https://listmonk.app/) newsletter and mailing list manager
+**Unofficial** Go SDK for the [Listmonk](https://listmonk.app/) newsletter and mailing list manager.
 
 ## Install
 
@@ -13,6 +13,8 @@ go get github.com/canpacis/listmonk-go
 ```go
 // Import the package
 import listmonkgo "github.com/canpacis/listmonk-go"
+
+// ...
 
 // Create a client
 client := listmonkgo.New(
@@ -58,7 +60,7 @@ func main() {
 }
 ```
 
-> You can find the API reference in [Listmonk](https://listmonk.app/docs/) website.
+> You can find the API reference in [Listmonk](https://listmonk.app/docs/apis/apis/) website.
 
 ## Roadmap
 

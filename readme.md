@@ -95,17 +95,17 @@ I'm currently developing the SDK and trying to react some parity with the [Listm
   - [x] GET	/api/import/subscribers/logs
   - [x] POST /api/import/subscribers
   - [x] DELETE /api/import/subscribers
-- [ ] Campaigns
+- [x] Campaigns
   - [x] GET	/api/campaigns
   - [x] GET	/api/campaigns/{campaign_id}
-  - [ ] GET	/api/campaigns/{campaign_id}/preview
-  - [ ] GET	/api/campaigns/running/stats
-  - [ ] GET	/api/campaigns/analytics/{type}
-  - [ ] POST /api/campaigns
-  - [ ] POST /api/campaigns/{campaign_id}/test
-  - [ ] PUT	/api/campaigns/{campaign_id}
-  - [ ] PUT	/api/campaigns/{campaign_id}/status
-  - [ ] PUT	/api/campaigns/{campaign_id}/archive
+  - [x] GET	/api/campaigns/{campaign_id}/preview
+  - [x] GET	/api/campaigns/running/stats
+  - [x] GET	/api/campaigns/analytics/{type}
+  - [x] POST /api/campaigns
+  - [x] POST /api/campaigns/{campaign_id}/test
+  - [x] PUT	/api/campaigns/{campaign_id}
+  - [x] PUT	/api/campaigns/{campaign_id}/status
+  - [x] PUT	/api/campaigns/{campaign_id}/archive
   - [x] DELETE /api/campaigns/{campaign_id}
 - [x] Media
   - [x] GET	/api/media

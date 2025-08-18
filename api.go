@@ -599,6 +599,155 @@ func (c *Client) AbortImport(ctx context.Context) (*AbortImportResponse, error) 
 	return resp.Data, nil
 }
 
+type CampaignType string
+
+const (
+	RegularCampaign CampaignType = "regular"
+	OptinCampaign   CampaignType = "optin"
+)
+
+type Campaign struct {
+	ID          int          `json:"id"`
+	TemplateID  int          `json:"template_id"`
+	UUID        uuid.UUID    `json:"uuid"`
+	Type        CampaignType `json:"type"`
+	Messenger   string       `json:"messenger"`
+	ContentType string       `json:"content_type"`
+
+	Name       string   `json:"name"`
+	Subject    string   `json:"subject"`
+	FromEmail  string   `json:"from_email"`
+	Body       string   `json:"body"`
+	BodySource string   `json:"body_source"`
+	AltBody    string   `json:"alt_body"`
+	Status     string   `json:"status"`
+	Tags       []string `json:"tags"`
+	// TODO: Fix type
+	Media []any `json:"media"`
+	Lists []any `json:"lists"`
+
+	Headers           []map[string]any `json:"headers"`
+	Archive           bool             `json:"archive"`
+	ArchiveSlug       string           `json:"archive_slug"`
+	ArchiveTemplateID int              `json:"archive_template_id"`
+	ArchiveMeta       map[string]any   `json:"archive_meta"`
+
+	Views   int `json:"views"`
+	Clicks  int `json:"clicks"`
+	Bounces int `json:"bounces"`
+	Sent    int `json:"sent"`
+	ToSend  int `json:"to_send"`
+
+	SendAt    time.Time `json:"send_at"`
+	StartedAt time.Time `json:"started_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type GetCampaignParams struct {
+	// Sorting order: ASC for ascending, DESC for descending.
+	Order string `url:"order"`
+	// Result sorting field. Options: name, status, created_at, updated_at.
+	OrderBy string `url:"order_by"`
+	//SQL query expression to filter campaigns.
+	Query string `url:"query"`
+	// Status to filter campaigns. Repeat in the query for multiple values.
+	Status []string `url:"status"`
+	// Tags to filter campaigns. Repeat in the query for multiple values.
+	Tags []string `url:"tags"`
+	// Page number for paginated results.
+	Page int `url:"page"`
+	// Results per page. Set as 'all' for all results.
+	PerPage int `url:"per_page"`
+	// When set to true, returns response without body content.
+	NoBody bool `url:"no_body"`
+}
+
+type GetCampaignResponse struct {
+	Results []Campaign `json:"results"`
+	Search  string     `json:"search"`
+	Query   string     `json:"query"`
+	Total   int        `json:"total"`
+	Page    int        `json:"page"`
+	PerPage int        `json:"per_page"`
+}
+
+// Retrieve all campaigns.
+func (c *Client) GetCampaigns(ctx context.Context, params *GetCampaignParams) (*GetCampaignResponse, error) {
+	path := "/api/campaigns"
+	resp, err := request[Response[*GetCampaignResponse]](c, ctx, "GET", path, params)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+// Retrieve a specific campaign.
+func (c *Client) GetCampaign(ctx context.Context, id int, noBody bool) (*Campaign, error) {
+	path := fmt.Sprintf("/api/campaigns/%d", id)
+	type params struct {
+		NoBody bool `url:"no_body"`
+	}
+	resp, err := request[Response[*Campaign]](c, ctx, "GET", path, params{NoBody: noBody})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+/*
+// Retrieve preview of a campaign.
+func (c *Client) GetCampaignPreview(ctx context.Context, id int) {
+	path := fmt.Sprintf("/api/campaigns/%d/preview", id)
+}
+
+// Retrieve stats of specified campaigns.
+func (c *Client) GetCampaignsStats(ctx context.Context) {
+	path := "/api/campaigns/running/stats"
+}
+
+// Retrieve view counts for a campaign.
+func (c *Client) GetCampaignViews(ctx context.Context) {
+	path := "/api/campaigns/analytics/{type}"
+}
+
+// Create a new campaign.
+func (c *Client) CreateCampaign(ctx context.Context) {
+	path := "/api/campaigns"
+}
+
+// Test campaign with arbitrary subscribers.
+func (c *Client) TestCampaign(ctx context.Context, id int) {
+	path := fmt.Sprintf("/api/campaigns/%d/test", id)
+}
+
+// Update a campaign.
+func (c *Client) UpdateCampaign(ctx context.Context, id int) {
+	path := fmt.Sprintf("/api/campaigns/%d", id)
+}
+
+// Change status of a campaign.
+func (c *Client) ChangeCampaignStatus(ctx context.Context, id int) {
+	path := fmt.Sprintf("/api/campaigns/%d/status", id)
+}
+
+// Publish campaign to public archive.
+func (c *Client) ArchiveCampaign(ctx context.Context, id int) {
+	path := fmt.Sprintf("/api/campaigns/%d/archive", id)
+}
+
+*/
+
+// Delete a campaign.
+func (c *Client) DeleteCampaign(ctx context.Context, id int) (bool, error) {
+	path := fmt.Sprintf("/api/campaigns/%d", id)
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, nil)
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
 type GetMediaListResponse struct {
 	ID        int       `json:"id"`
 	UUID      uuid.UUID `json:"uuid"`

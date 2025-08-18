@@ -74,8 +74,8 @@ I'm currently developing the SDK and trying to react some parity with the [Listm
   - [x] POST /api/subscribers
   - [x] POST /api/subscribers/{subscriber_id}/optin
   - [x] POST /api/public/subscription
-  - [ ] PUT /api/subscribers/lists
-  - [ ] PUT /api/subscribers/{subscriber_id}
+  - [x] PUT /api/subscribers/lists
+  - [x] PUT /api/subscribers/{subscriber_id}
   - [x] PUT /api/subscribers/{subscriber_id}/blocklist
   - [x] PUT /api/subscribers/blocklist
   - [x] PUT /api/subscribers/query/blocklist

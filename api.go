@@ -229,13 +229,13 @@ func (c *Client) UpdateListMemberships(ctx context.Context, params *UpdateListMe
 
 // Update a specific subscriber.
 // Note: All parameters must be set, if not, the subscriber will be removed from all previously assigned lists.
-func (c *Client) UpdateSubscriber(ctx context.Context, id int, params *CreateSubscriberParams) error {
+func (c *Client) UpdateSubscriber(ctx context.Context, id int, params *CreateSubscriberParams) (*CreateSubscriberResponse, error) {
 	path := fmt.Sprintf("/api/subscribers/%d", id)
-	_, err := request[Response[any]](c, ctx, "PUT", path, params)
+	resp, err := request[Response[*CreateSubscriberResponse]](c, ctx, "PUT", path, params)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp.Data, nil
 }
 
 // Blocklist a specific subscriber.
@@ -838,13 +838,13 @@ func (c *Client) TestCampaign(ctx context.Context, id int, subscribers []string)
 }
 
 // Update a campaign.
-func (c *Client) UpdateCampaign(ctx context.Context, id int, params *CreateCampaignParams) error {
+func (c *Client) UpdateCampaign(ctx context.Context, id int, params *CreateCampaignParams) (*Campaign, error) {
 	path := fmt.Sprintf("/api/campaigns/%d", id)
-	_, err := request[any](c, ctx, "PUT", path, params)
+	resp, err := request[Response[*Campaign]](c, ctx, "PUT", path, params)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp.Data, nil
 }
 
 type CampaignStatus string
@@ -974,6 +974,112 @@ func (c *Client) UploadMedia(ctx context.Context, file io.Reader) (*UploadMediaR
 // Delete uploaded media file.
 func (c *Client) DeleteMedia(ctx context.Context, id int) (bool, error) {
 	path := fmt.Sprintf("/api/media/%d", id)
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, nil)
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
+type Template struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	Body      string    `json:"body"`
+	IsDefault bool      `json:"is_default"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	// BodySource string `json:"body_source"`
+}
+
+// Retrieve all templates.
+func (c *Client) GetTemplates(ctx context.Context) ([]Template, error) {
+	path := "/api/templates"
+	resp, err := request[Response[[]Template]](c, ctx, "GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+// Retrieve a template.
+func (c *Client) GetTemplate(ctx context.Context, id int) (*Template, error) {
+	path := fmt.Sprintf("/api/templates/%d", id)
+	resp, err := request[Response[*Template]](c, ctx, "GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+// Retrieve template HTML preview.
+func (c *Client) GetTemplatePreview(ctx context.Context, id int) (string, error) {
+	path := fmt.Sprintf("/api/templates/%d/preview", id)
+	resp, err := c.do(ctx, "GET", path, nil)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != http.StatusOK {
+		decoder := json.NewDecoder(resp.Body)
+		data := new(ErrorResponse)
+		if err := decoder.Decode(data); err != nil {
+			return "", err
+		}
+		return "", errors.New(data.Message)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+type CreateTemplateParams struct {
+	// Name of the template
+	Name string `json:"name"`
+	// Type of the template (campaign, campaign_visual, or tx)
+	Type string `json:"type"`
+	// Subject line for the template (only for tx)
+	Subject string `json:"subject"`
+	// HTML body of the template
+	Body string `json:"body"`
+	// If type is campaign_visual, the JSON source for the email-builder tempalate
+	BodySource string `json:"body_source"`
+}
+
+// Create a template.
+func (c *Client) CreateTemplate(ctx context.Context, params *CreateTemplateParams) (*Template, error) {
+	path := "/api/templates"
+	resp, err := request[Response[[]Template]](c, ctx, "POST", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Data[0], nil
+}
+
+// Update a template.
+func (c *Client) UpdateTemplate(ctx context.Context, id int) (*Template, error) {
+	path := fmt.Sprintf("/api/templates/%d", id)
+	resp, err := request[Response[[]Template]](c, ctx, "PUT", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.Data[0], nil
+}
+
+// Set a template as the default.
+func (c *Client) SetDefaultTemplate(ctx context.Context, id int) (*Template, error) {
+	path := fmt.Sprintf("/api/templates/%d/default", id)
+	resp, err := request[Response[*Template]](c, ctx, "PUT", path, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+// Delete a template.
+func (c *Client) DeleteTemplate(ctx context.Context, id int) (bool, error) {
+	path := fmt.Sprintf("/api/templates/%d", id)
 	resp, err := request[Response[bool]](c, ctx, "DELETE", path, nil)
 	if err != nil {
 		return false, err

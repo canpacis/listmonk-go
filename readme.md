@@ -70,7 +70,7 @@ I'm currently developing the SDK and trying to react some parity with the [Listm
 - [x] Lists
 - [x] Import
 - [ ] Campaigns
-- [ ] Media
+- [x] Media
 - [ ] Templates
 - [x] Transactional
 - [x] Bounces

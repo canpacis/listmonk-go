@@ -3,6 +3,7 @@ package listmonkgo
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -695,48 +696,174 @@ func (c *Client) GetCampaign(ctx context.Context, id int, noBody bool) (*Campaig
 	return resp.Data, nil
 }
 
-/*
 // Retrieve preview of a campaign.
-func (c *Client) GetCampaignPreview(ctx context.Context, id int) {
+func (c *Client) GetCampaignPreview(ctx context.Context, id int) (string, error) {
 	path := fmt.Sprintf("/api/campaigns/%d/preview", id)
+	resp, err := c.do(ctx, "GET", path, nil)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != http.StatusOK {
+		decoder := json.NewDecoder(resp.Body)
+		data := new(ErrorResponse)
+		if err := decoder.Decode(data); err != nil {
+			return "", err
+		}
+		return "", errors.New(data.Message)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
 
 // Retrieve stats of specified campaigns.
-func (c *Client) GetCampaignsStats(ctx context.Context) {
+// API Docs do not provide any meaningful documentation for the response of this action
+func (c *Client) GetCampaignsStats(ctx context.Context, ids []int) ([]any, error) {
 	path := "/api/campaigns/running/stats"
+	type params struct {
+		IDs []int `url:"id"`
+	}
+	resp, err := request[Response[[]any]](c, ctx, "GET", path, params{IDs: ids})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
 }
 
+type CampaignStatType string
+
+const (
+	ViewCampaignStat   CampaignStatType = "views"
+	ClickCampaignStat  CampaignStatType = "clicks"
+	LinkCampaignStat   CampaignStatType = "links"
+	BounceCampaignStat CampaignStatType = "bounces"
+)
+
+type GetCampaignViewsParams struct {
+	// Campaign IDs to get stats for.
+	IDs []int `url:"id"`
+	//	Analytics type: views, links, clicks, bounces
+	Type CampaignStatType `url:"-"`
+	// Start value of date range.
+	From time.Time `url:"from"`
+	// End value of date range.
+	To time.Time `url:"to"`
+}
+
+type TimeSeriesData []map[string]any
+
 // Retrieve view counts for a campaign.
-func (c *Client) GetCampaignViews(ctx context.Context) {
-	path := "/api/campaigns/analytics/{type}"
+func (c *Client) GetCampaignViews(ctx context.Context, params *GetCampaignViewsParams) (TimeSeriesData, error) {
+	path := fmt.Sprintf("/api/campaigns/analytics/%s", params.Type)
+	resp, err := request[Response[TimeSeriesData]](c, ctx, "GET", path, params)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+type CreateCampaignParams struct {
+	Name        string           `json:"name"`         // Campaign name.
+	Subject     string           `json:"subject"`      // Campaign email subject.
+	Lists       []int            `json:"lists"`        // List IDs to send campaign to.
+	FromEmail   string           `json:"from_email"`   // 'From' email in campaign emails. Defaults to value from settings if not provided.
+	Type        CampaignType     `json:"type"`         // Campaign type: 'regular' or 'optin'.
+	ContentType string           `json:"content_type"` // Content type: 'richtext', 'html', 'markdown', 'plain', 'visual'.
+	Body        string           `json:"body"`         // Content body of campaign.
+	BodySource  string           `json:"body_source"`  // If content_type is visual, the JSON block source of the body.
+	Altbody     string           `json:"altbody"`      // Alternate plain text body for HTML (and richtext) emails.
+	SendAt      time.Time        `json:"send_at"`      // Timestamp to schedule campaign. Format: 'YYYY-MM-DDTHH:MM:SSZ'.
+	Messenger   string           `json:"messenger"`    // 'email' or a custom messenger defined in settings. Defaults to 'email' if not provided.
+	TemplateID  int              `json:"template_id"`  // Template ID to use. Defaults to default template if not provided.
+	Tags        []string         `json:"tags"`         // Tags to mark campaign.
+	Headers     []map[string]any `json:"headers"`      // Key-value pairs to send as SMTP headers. Example: [{"x-custom-header": "value"}].
 }
 
 // Create a new campaign.
-func (c *Client) CreateCampaign(ctx context.Context) {
+func (c *Client) CreateCampaign(ctx context.Context, params *CreateCampaignParams) (*Campaign, error) {
 	path := "/api/campaigns"
+	resp, err := request[Response[*Campaign]](c, ctx, "POST", path, params)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
 }
 
 // Test campaign with arbitrary subscribers.
-func (c *Client) TestCampaign(ctx context.Context, id int) {
+func (c *Client) TestCampaign(ctx context.Context, id int, subscribers []string) error {
 	path := fmt.Sprintf("/api/campaigns/%d/test", id)
+	type params struct {
+		Subscribers []string `json:"subscribers"`
+	}
+	_, err := request[any](c, ctx, "POST", path, params{Subscribers: subscribers})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Update a campaign.
-func (c *Client) UpdateCampaign(ctx context.Context, id int) {
+func (c *Client) UpdateCampaign(ctx context.Context, id int, params *CreateCampaignParams) error {
 	path := fmt.Sprintf("/api/campaigns/%d", id)
+	_, err := request[any](c, ctx, "PUT", path, params)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
+type CampaignStatus string
+
+const (
+	CampaignStatusScheduled CampaignStatus = "scheduled"
+	CampaignStatusRunning   CampaignStatus = "running"
+	CampaignStatusPaused    CampaignStatus = "paused"
+	CampaignStatusCancelled CampaignStatus = "cancelled"
+)
+
 // Change status of a campaign.
-func (c *Client) ChangeCampaignStatus(ctx context.Context, id int) {
+func (c *Client) ChangeCampaignStatus(ctx context.Context, id int, status CampaignStatus) (*Campaign, error) {
 	path := fmt.Sprintf("/api/campaigns/%d/status", id)
+	type params struct {
+		Status CampaignStatus `json:"status"`
+	}
+	resp, err := request[Response[*Campaign]](c, ctx, "PUT", path, params{Status: status})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+type ArchiveCampaignParams struct {
+	// State of the public archive.
+	Archive bool `json:"archive"`
+	// Archive template id. Defaults to 0.
+	ArchiveTemplateID int `json:"archive_template_id"`
+	// Optional Metadata to use in campaign message or template. Eg: name, email.
+	ArchiveMeta map[string]any `json:"archive_meta"`
+	// Name for page to be used in public archive URL
+	ArchiveSlug string `json:"archive_slug"`
+}
+
+type ArchiveCampaignResponse struct {
+	Archive           bool           `json:"archive"`
+	ArchiveTemplateID int            `json:"archive_template_id"`
+	ArchiveMeta       map[string]any `json:"archive_meta"`
+	ArchiveSlug       string         `json:"archive_slug"`
 }
 
 // Publish campaign to public archive.
-func (c *Client) ArchiveCampaign(ctx context.Context, id int) {
+func (c *Client) ArchiveCampaign(ctx context.Context, id int, params *ArchiveCampaignParams) (*ArchiveCampaignParams, error) {
 	path := fmt.Sprintf("/api/campaigns/%d/archive", id)
+	resp, err := request[Response[*ArchiveCampaignParams]](c, ctx, "PUT", path, params)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
 }
-
-*/
 
 // Delete a campaign.
 func (c *Client) DeleteCampaign(ctx context.Context, id int) (bool, error) {
@@ -855,8 +982,10 @@ type Bounce struct {
 	SubscriberID   int            `json:"subscriber_id"`
 	SubscriberUUID uuid.UUID      `json:"subscriber_uuid"`
 	Meta           map[string]any `json:"meta"`
-	// TODO: Fix this type
-	Campaign  any       `json:"campaign"`
+	Campaign       struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"campaign"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

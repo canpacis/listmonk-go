@@ -608,3 +608,85 @@ func (c *Client) SendTemplate(ctx context.Context, params *SendTemplateParams) (
 	}
 	return resp.Data, nil
 }
+
+type GetBouncesParams struct {
+	// Bounce record retrieval for particular campaign id
+	CompaignID int `url:"campaign_id"`
+	// Page number for pagination.
+	Page int `url:"page"`
+	// Results per page. Set to 'all' to return all results.
+	PerPage int `url:"per_page"`
+	//
+	Source string `url:"source"`
+	// Fields by which bounce records are ordered. Options:"email", "campaign_name", "source", "created_at".
+	OrderBy string `url:"order_by"`
+	// Sorts the result. Allowed values: 'asc','desc'
+	Order string `url:"order"`
+}
+
+type Bounce struct {
+	ID             int            `json:"id"`
+	Type           string         `json:"type"`
+	Source         string         `json:"source"`
+	Email          string         `json:"email"`
+	SubscriberID   int            `json:"subscriber_id"`
+	SubscriberUUID uuid.UUID      `json:"subscriber_uuid"`
+	Meta           map[string]any `json:"meta"`
+	// TODO: Fix this type
+	Campaign  any       `json:"campaign"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type GetBouncesResponse struct {
+	Results []Bounce `json:"results"`
+	Query   string   `json:"query"`
+	Total   int      `json:"total"`
+	Page    int      `json:"page"`
+	PerPage int      `json:"per_page"`
+}
+
+// Retrieve bounce records.
+func (c *Client) GetBounces(ctx context.Context, params *GetBouncesParams) (*GetBouncesResponse, error) {
+	path := "/api/bounces"
+	resp, err := request[Response[*GetBouncesResponse]](c, ctx, "GET", path, params)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
+}
+
+// Delete all bounce records.
+func (c *Client) DeleteAllBounces(ctx context.Context) (bool, error) {
+	path := "/api/bounces"
+	type params struct {
+		All bool `url:"all"`
+	}
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, params{All: true})
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
+// Delete multiple bounce records.
+func (c *Client) DeleteBounces(ctx context.Context, ids []int) (bool, error) {
+	path := "/api/bounces"
+	type params struct {
+		IDs []int `url:"id"`
+	}
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, params{IDs: ids})
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}
+
+// Delete specific bounce record.
+func (c *Client) DeleteBounce(ctx context.Context, id int) (bool, error) {
+	path := fmt.Sprintf("/api/bounces/%d", id)
+	resp, err := request[Response[bool]](c, ctx, "DELETE", path, nil)
+	if err != nil {
+		return false, err
+	}
+	return resp.Data, nil
+}

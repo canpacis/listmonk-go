@@ -73,6 +73,6 @@ I'm currently developing the SDK and trying to react some parity with the [Listm
 - [ ] Media
 - [ ] Templates
 - [x] Transactional
-- [ ] Bounces
+- [x] Bounces
 
 Any help is welcome.

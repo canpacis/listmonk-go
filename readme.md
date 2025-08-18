@@ -66,7 +66,7 @@ func main() {
 
 I'm currently developing the SDK and trying to react some parity with the [Listmonk API](https://listmonk.app/docs/). Tests are not enough at the moment as well.
 
-- [-] Subscribers
+- [x] Subscribers
   - [x] GET /api/subscribers
   - [x] GET /api/subscribers/{subscriber_id}
   - [x] GET /api/subscribers/{subscriber_id}/export
@@ -95,7 +95,7 @@ I'm currently developing the SDK and trying to react some parity with the [Listm
   - [x] GET	/api/import/subscribers/logs
   - [x] POST /api/import/subscribers
   - [x] DELETE /api/import/subscribers
-- [-] Campaigns
+- [ ] Campaigns
   - [x] GET	/api/campaigns
   - [x] GET	/api/campaigns/{campaign_id}
   - [ ] GET	/api/campaigns/{campaign_id}/preview

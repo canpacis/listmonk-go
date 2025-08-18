@@ -641,9 +641,16 @@ type Campaign struct {
 	AltBody    string   `json:"alt_body"`
 	Status     string   `json:"status"`
 	Tags       []string `json:"tags"`
-	// TODO: Fix type
-	Media []any `json:"media"`
-	Lists []any `json:"lists"`
+
+	Media []struct {
+		ID       int    `json:"id"`
+		Filename string `json:"filename"`
+	} `json:"media"`
+
+	Lists []struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"lists"`
 
 	Headers           []map[string]any `json:"headers"`
 	Archive           bool             `json:"archive"`

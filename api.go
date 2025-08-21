@@ -564,7 +564,7 @@ type ImportSubscribersConfig struct {
 	// subscribe or blocklist
 	Mode ImportMode `json:"mode"`
 	// Single character indicating delimiter used in the CSV file, eg: ,
-	Delimeter rune `json:"delim"`
+	Delimeter string `json:"delim"`
 	// List IDs to add subscribers to.
 	Lists []int `json:"lists"`
 	//	Whether to overwrite the subscriber parameters including subscriptions or ignore records that are already present in the database.
@@ -578,7 +578,7 @@ type ImportSubscribersParams struct {
 
 type ImportSubscribersResponse struct {
 	Mode      ImportMode `json:"mode"`
-	Delimeter rune       `json:"delim"`
+	Delimeter string     `json:"delim"`
 	Lists     []int      `json:"lists"`
 	Overwrite bool       `json:"overwrite"`
 }
